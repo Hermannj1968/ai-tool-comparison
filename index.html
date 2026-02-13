@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Tool Comparison Generator | Maldeka</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1a4d7a;
+            --primary-light: #2d6ba3;
+            --accent: #d97706;
+            --accent-light: #f59e0b;
+            --bg-primary: #fafafa;
+            --bg-secondary: #ffffff;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --border: #e5e7eb;
+            --success: #059669;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.12);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e8eef5 100%);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border);
+        }
+
+        h1 {
+            font-family: 'Crimson Pro', serif;
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.5px;
+        }
+
+        .tagline {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            font-size: 0.95rem;
+            color: var(--accent);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .main-section {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border);
+        }
+
+        .input-group {
+            margin-bottom: 2rem;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 0.75rem;
+            font-size: 1.1rem;
+            font-family: 'Crimson Pro', serif;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1rem;
+            color: var(--text-primary);
+            resize: vertical;
+            min-height: 120px;
+            transition: all 0.3s ease;
+            background: var(--bg-primary);
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(26, 77, 122, 0.1);
+            background: var(--bg-secondary);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 10px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-light);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-secondary {
+            background: var(--bg-primary);
+            color: var(--primary);
+            border: 2px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-secondary);
+            border-color: var(--primary);
+        }
+
+        .btn-accent {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-accent:hover {
+            background: var(--accent-light);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        #results {
+            display: none;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .results-header h2 {
+            font-family: 'Crimson Pro', serif;
+            font-size: 2rem;
+            color: var(--primary);
+        }
+
+        .use-case-display {
+            background: var(--bg-primary);
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            border-left: 4px solid var(--accent);
+        }
+
+        .use-case-display strong {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .tool-card {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tool-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .tool-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary);
+        }
+
+        .tool-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .tool-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .tool-name {
+            font-family: 'Crimson Pro', serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .rating {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .star {
+            color: var(--accent);
+            font-size: 1.2rem;
+        }
+
+        .star.empty {
+            color: var(--border);
+        }
+
+        .recommendation {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            padding: 0.5rem;
+            border-radius: 6px;
+            font-size: 0.95rem;
+        }
+
+        .excellent { background: #d1fae5; color: var(--success); }
+        .good { background: #dbeafe; color: var(--primary); }
+        .fair { background: #fef3c7; color: #92400e; }
+        .limited { background: #fee2e2; color: #991b1b; }
+
+        .strengths {
+            margin-top: 1rem;
+        }
+
+        .strengths h4 {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .strengths ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .strengths li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .strengths li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: var(--success);
+            font-weight: bold;
+        }
+
+        .saved-comparisons {
+            margin-top: 3rem;
+        }
+
+        .saved-comparisons h2 {
+            font-family: 'Crimson Pro', serif;
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+        }
+
+        .saved-item {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .saved-item:hover {
+            border-color: var(--primary);
+            box-shadow: var(--shadow-md);
+            transform: translateX(4px);
+        }
+
+        .saved-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .saved-item-text {
+            font-weight: 500;
+            color: var(--text-primary);
+            flex: 1;
+        }
+
+        .saved-item-date {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-right: 1rem;
+        }
+
+        .delete-btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+            background: #fee2e2;
+            color: #991b1b;
+            border-radius: 6px;
+        }
+
+        .delete-btn:hover {
+            background: #fecaca;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.3;
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2rem; }
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            .button-group {
+                flex-direction: column;
+            }
+            .btn-primary {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="subtitle">Maldeka</div>
+            <h1>AI Tool Comparison Generator</h1>
+            <p class="tagline">Tech Made Simple - Training That Speaks Your Language</p>
+        </header>
+
+        <div class="main-section">
+            <div class="input-group">
+                <label for="useCase">What's your use case or task?</label>
+                <textarea 
+                    id="useCase" 
+                    placeholder="Example: I need to analyze 50 customer reviews and identify common themes and sentiment trends..."
+                ></textarea>
+            </div>
+
+            <div class="button-group">
+                <button class="btn-primary" onclick="generateComparison()">Generate Comparison</button>
+                <button class="btn-secondary" onclick="clearInput()">Clear</button>
+            </div>
+        </div>
+
+        <div id="results" class="main-section">
+            <div class="results-header">
+                <h2>Comparison Results</h2>
+                <button class="btn-accent" onclick="saveComparison()">Save This Comparison</button>
+            </div>
+            
+            <div class="use-case-display">
+                <strong>Use Case:</strong> <span id="displayUseCase"></span>
+            </div>
+
+            <div class="comparison-grid" id="comparisonGrid"></div>
+
+            <button class="btn-secondary" onclick="generateAnother()">Generate Another Comparison</button>
+        </div>
+
+        <div class="main-section saved-comparisons" id="savedSection" style="display: none;">
+            <h2>Saved Comparisons</h2>
+            <div id="savedList"></div>
+        </div>
+    </div>
+
+    <script>
+        const aiTools = {
+            'Claude': {
+                color: '#1a4d7a',
+                strengths: {
+                    'text analysis': { rating: 5, reco: 'Excellent', strengths: ['Superior long-form analysis', 'Nuanced interpretation', 'Context retention across large documents', 'Ethical reasoning'] },
+                    'coding': { rating: 5, reco: 'Excellent', strengths: ['Clean, well-documented code', 'Strong debugging skills', 'Excellent at explaining code', 'Follows best practices'] },
+                    'writing': { rating: 5, reco: 'Excellent', strengths: ['Natural, engaging tone', 'Adapts to different styles', 'Strong editing capabilities', 'Contextual awareness'] },
+                    'research': { rating: 4, reco: 'Good', strengths: ['Thorough analysis', 'Critical thinking', 'Synthesizes information well', 'No web access in standard version'] },
+                    'creative': { rating: 5, reco: 'Excellent', strengths: ['Original ideas', 'Nuanced character development', 'Strong narrative structure', 'Collaborative approach'] },
+                    'education': { rating: 5, reco: 'Excellent', strengths: ['Clear explanations', 'Adapts to learner level', 'Patient instruction', 'Excellent analogies'] },
+                    'data': { rating: 4, reco: 'Good', strengths: ['Statistical reasoning', 'Pattern recognition', 'Clear insights', 'Limited visualization'] }
+                }
+            },
+            'ChatGPT': {
+                color: '#10a37f',
+                strengths: {
+                    'text analysis': { rating: 4, reco: 'Good', strengths: ['Quick processing', 'Good pattern recognition', 'Plugins for enhanced capability', 'Web search with Plus'] },
+                    'coding': { rating: 4, reco: 'Good', strengths: ['Fast code generation', 'Wide language support', 'Good for quick solutions', 'Strong at common patterns'] },
+                    'writing': { rating: 4, reco: 'Good', strengths: ['Versatile styles', 'Quick content generation', 'Good for drafts', 'Consistent output'] },
+                    'research': { rating: 5, reco: 'Excellent', strengths: ['Web browsing capability', 'Real-time information', 'Source citations', 'Plugin ecosystem'] },
+                    'creative': { rating: 4, reco: 'Good', strengths: ['Fast ideation', 'Multiple variations', 'Good brainstorming', 'Image generation (DALL-E)'] },
+                    'education': { rating: 4, reco: 'Good', strengths: ['Clear teaching style', 'Interactive learning', 'Good examples', 'Multiple explanation approaches'] },
+                    'data': { rating: 4, reco: 'Good', strengths: ['Code interpreter', 'Data visualization', 'Statistical analysis', 'Python execution'] }
+                }
+            },
+            'Microsoft Copilot': {
+                color: '#0078d4',
+                strengths: {
+                    'text analysis': { rating: 3, reco: 'Fair', strengths: ['Basic analysis', 'Web search integrated', 'Good for summaries', 'Microsoft ecosystem'] },
+                    'coding': { rating: 5, reco: 'Excellent', strengths: ['IDE integration', 'Context-aware suggestions', 'GitHub integration', 'Real-time assistance'] },
+                    'writing': { rating: 3, reco: 'Fair', strengths: ['Office integration', 'Good for business docs', 'Templates available', 'Email assistance'] },
+                    'research': { rating: 4, reco: 'Good', strengths: ['Bing search integration', 'Current information', 'Multiple sources', 'Citation included'] },
+                    'creative': { rating: 3, reco: 'Fair', strengths: ['Image generation', 'Basic ideation', 'Template assistance', 'PowerPoint integration'] },
+                    'education': { rating: 3, reco: 'Fair', strengths: ['Educational resources', 'Study assistance', 'Microsoft Learn integration', 'Good for tutorials'] },
+                    'data': { rating: 4, reco: 'Good', strengths: ['Excel integration', 'Power BI support', 'Data insights', 'Business intelligence'] }
+                }
+            },
+            'Google Gemini': {
+                color: '#4285f4',
+                strengths: {
+                    'text analysis': { rating: 4, reco: 'Good', strengths: ['Multimodal analysis', 'Image understanding', 'Google Search integration', 'Fast processing'] },
+                    'coding': { rating: 4, reco: 'Good', strengths: ['Multiple languages', 'Good debugging', 'Integration with Google tools', 'Code explanations'] },
+                    'writing': { rating: 4, reco: 'Good', strengths: ['Natural language', 'Google Docs integration', 'Multiple drafts', 'Tone adjustment'] },
+                    'research': { rating: 5, reco: 'Excellent', strengths: ['Google Search built-in', 'Real-time data', 'Extensive knowledge', 'Fact-checking'] },
+                    'creative': { rating: 4, reco: 'Good', strengths: ['Image generation', 'Creative writing', 'Brainstorming', 'Visual understanding'] },
+                    'education': { rating: 4, reco: 'Good', strengths: ['Clear explanations', 'Visual learning', 'Google Classroom integration', 'Educational resources'] },
+                    'data': { rating: 4, reco: 'Good', strengths: ['Google Sheets integration', 'Data visualization', 'Analytics support', 'BigQuery connection'] }
+                }
+            },
+            'Grok': {
+                color: '#000000',
+                strengths: {
+                    'text analysis': { rating: 3, reco: 'Fair', strengths: ['Real-time X data', 'Current events focus', 'Social media insights', 'Conversational'] },
+                    'coding': { rating: 3, reco: 'Fair', strengths: ['Basic coding help', 'Simple solutions', 'Quick responses', 'Growing capabilities'] },
+                    'writing': { rating: 3, reco: 'Fair', strengths: ['Casual tone', 'Social media style', 'Quick drafts', 'Less formal'] },
+                    'research': { rating: 4, reco: 'Good', strengths: ['X platform access', 'Real-time trends', 'Current events', 'Social sentiment'] },
+                    'creative': { rating: 3, reco: 'Fair', strengths: ['Fun mode available', 'Unconventional ideas', 'Humorous responses', 'Beta features'] },
+                    'education': { rating: 2, reco: 'Limited', strengths: ['Basic explanations', 'Current events context', 'Less structured', 'Newer platform'] },
+                    'data': { rating: 2, reco: 'Limited', strengths: ['Basic analysis', 'Social media data', 'Limited tooling', 'Growing features'] }
+                }
+            },
+            'Perplexity': {
+                color: '#1c7b9e',
+                strengths: {
+                    'text analysis': { rating: 4, reco: 'Good', strengths: ['Source-backed analysis', 'Citation heavy', 'Factual focus', 'Multiple perspectives'] },
+                    'coding': { rating: 3, reco: 'Fair', strengths: ['Code examples with sources', 'Documentation links', 'Multiple solutions', 'External references'] },
+                    'writing': { rating: 3, reco: 'Fair', strengths: ['Research-based writing', 'Factual content', 'Citations included', 'Academic style'] },
+                    'research': { rating: 5, reco: 'Excellent', strengths: ['Best-in-class search', 'Multiple sources', 'Clear citations', 'Academic mode'] },
+                    'creative': { rating: 2, reco: 'Limited', strengths: ['Fact-based ideas', 'Historical references', 'Research support', 'Less imagination'] },
+                    'education': { rating: 4, reco: 'Good', strengths: ['Source verification', 'Academic research', 'Cited explanations', 'Learning resources'] },
+                    'data': { rating: 3, reco: 'Fair', strengths: ['Research-backed insights', 'Statistical sources', 'Fact verification', 'Limited analysis'] }
+                }
+            }
+        };
+
+        function categorizeUseCase(useCase) {
+            const text = useCase.toLowerCase();
+            if (text.includes('code') || text.includes('debug') || text.includes('program') || text.includes('script') || text.includes('function')) {
+                return 'coding';
+            }
+            if (text.includes('research') || text.includes('find') || text.includes('search') || text.includes('investigate')) {
+                return 'research';
+            }
+            if (text.includes('write') || text.includes('blog') || text.includes('article') || text.includes('email') || text.includes('document')) {
+                return 'writing';
+            }
+            if (text.includes('creative') || text.includes('story') || text.includes('poem') || text.includes('brainstorm')) {
+                return 'creative';
+            }
+            if (text.includes('teach') || text.includes('learn') || text.includes('explain') || text.includes('tutorial')) {
+                return 'education';
+            }
+            if (text.includes('data') || text.includes('analyze') || text.includes('statistics') || text.includes('chart') || text.includes('spreadsheet')) {
+                return 'data';
+            }
+            return 'text analysis';
+        }
+
+        function generateComparison() {
+            const useCase = document.getElementById('useCase').value.trim();
+            if (!useCase) {
+                alert('Please enter a use case to compare AI tools.');
+                return;
+            }
+
+            const category = categorizeUseCase(useCase);
+            document.getElementById('displayUseCase').textContent = useCase;
+
+            const grid = document.getElementById('comparisonGrid');
+            grid.innerHTML = '';
+
+            const sortedTools = Object.entries(aiTools).sort((a, b) => {
+                const ratingA = a[1].strengths[category]?.rating || 0;
+                const ratingB = b[1].strengths[category]?.rating || 0;
+                return ratingB - ratingA;
+            });
+
+            sortedTools.forEach(([name, data]) => {
+                const toolData = data.strengths[category] || {
+                    rating: 2,
+                    reco: 'Limited',
+                    strengths: ['Limited information available', 'May not be optimal for this task']
+                };
+
+                const card = document.createElement('div');
+                card.className = 'tool-card';
+                card.style.animationDelay = `${sortedTools.indexOf([name, data]) * 0.1}s`;
+                
+                const stars = '★'.repeat(toolData.rating) + '☆'.repeat(5 - toolData.rating);
+                
+                const recoClass = toolData.reco.toLowerCase();
+                
+                card.innerHTML = `
+                    <div class="tool-header">
+                        <div class="tool-name">${name}</div>
+                        <div class="rating">${stars}</div>
+                    </div>
+                    <div class="recommendation ${recoClass}">${toolData.reco} for this task</div>
+                    <div class="strengths">
+                        <h4>Key Strengths</h4>
+                        <ul>
+                            ${toolData.strengths.map(s => `<li>${s}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+                
+                grid.appendChild(card);
+            });
+
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function clearInput() {
+            document.getElementById('useCase').value = '';
+            document.getElementById('useCase').focus();
+        }
+
+        function generateAnother() {
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('useCase').value = '';
+            document.getElementById('useCase').focus();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function saveComparison() {
+            const useCase = document.getElementById('displayUseCase').textContent;
+            const saved = JSON.parse(localStorage.getItem('aiComparisons') || '[]');
+            
+            const comparison = {
+                id: Date.now(),
+                useCase: useCase,
+                date: new Date().toLocaleDateString(),
+                category: categorizeUseCase(useCase)
+            };
+            
+            saved.unshift(comparison);
+            localStorage.setItem('aiComparisons', JSON.stringify(saved));
+            
+            alert('Comparison saved!');
+            loadSavedComparisons();
+        }
+
+        function loadSavedComparisons() {
+            const saved = JSON.parse(localStorage.getItem('aiComparisons') || '[]');
+            const section = document.getElementById('savedSection');
+            const list = document.getElementById('savedList');
+            
+            if (saved.length === 0) {
+                section.style.display = 'none';
+                return;
+            }
+            
+            section.style.display = 'block';
+            list.innerHTML = '';
+            
+            saved.forEach(comp => {
+                const item = document.createElement('div');
+                item.className = 'saved-item';
+                item.innerHTML = `
+                    <div class="saved-item-header">
+                        <div class="saved-item-text">${comp.useCase}</div>
+                        <div class="saved-item-date">${comp.date}</div>
+                        <button class="delete-btn" onclick="deleteComparison(${comp.id}); event.stopPropagation();">Delete</button>
+                    </div>
+                `;
+                item.onclick = () => loadComparison(comp.useCase);
+                list.appendChild(item);
+            });
+        }
+
+        function loadComparison(useCase) {
+            document.getElementById('useCase').value = useCase;
+            generateComparison();
+        }
+
+        function deleteComparison(id) {
+            if (confirm('Delete this saved comparison?')) {
+                let saved = JSON.parse(localStorage.getItem('aiComparisons') || '[]');
+                saved = saved.filter(c => c.id !== id);
+                localStorage.setItem('aiComparisons', JSON.stringify(saved));
+                loadSavedComparisons();
+            }
+        }
+
+        // Load saved comparisons on page load
+        window.addEventListener('DOMContentLoaded', loadSavedComparisons);
+    </script>
+</body>
+</html>
