@@ -1,0 +1,30 @@
+# Kører CRM-appen bag Caddy, som automatisk henter og fornyer HTTPS-certifikat.
+# Kræver at DNS for CRM_DOMAIN peger på serveren. Se UPPSETNING.md.
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./data:/app/data
+    expose:
+      - "3000"
+
+  caddy:
+    image: caddy:2.8-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - CRM_DOMAIN=${CRM_DOMAIN:?Sæt CRM_DOMAIN i .env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+
+volumes:
+  caddy_data:
+  caddy_config:
