@@ -1,0 +1,1316 @@
+<title>Salgsassistent</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+:root {
+  --bg: #f5f7f8;
+  --surface: #ffffff;
+  --surface-2: #eef2f4;
+  --text: #1b2a33;
+  --muted: #5f707a;
+  --border: #dbe2e6;
+  --primary: #16425b;
+  --primary-2: #2f6690;
+  --accent: #3a7ca5;
+  --accent-soft: #d9ecf4;
+  --ok: #2e7d4f;
+  --ok-soft: #dff1e6;
+  --warn: #b25d0b;
+  --warn-soft: #fbead6;
+  --danger: #b3261e;
+  --rec: #d64545;
+  --radius: 14px;
+  --shadow: 0 1px 2px rgba(16, 36, 48, 0.06), 0 4px 16px rgba(16, 36, 48, 0.06);
+  --on-primary: #ffffff;
+  --backdrop: rgba(10, 20, 26, 0.45);
+  --pulse: rgba(214, 69, 69, 0.5);
+  --pulse-0: rgba(214, 69, 69, 0);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f171c;
+    --surface: #16222a;
+    --surface-2: #1d2c35;
+    --text: #e4ecef;
+    --muted: #93a5ae;
+    --border: #2a3b45;
+    --primary: #81c3d7;
+    --primary-2: #9fd3e3;
+    --accent: #81c3d7;
+    --accent-soft: #1d3a47;
+    --ok: #74c69d;
+    --ok-soft: #173327;
+    --warn: #f0a868;
+    --warn-soft: #3a2a17;
+    --danger: #f2827b;
+    --shadow: none;
+    --on-primary: #0f171c;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+    --bg: #0f171c;
+    --surface: #16222a;
+    --surface-2: #1d2c35;
+    --text: #e4ecef;
+    --muted: #93a5ae;
+    --border: #2a3b45;
+    --primary: #81c3d7;
+    --primary-2: #9fd3e3;
+    --accent: #81c3d7;
+    --accent-soft: #1d3a47;
+    --ok: #74c69d;
+    --ok-soft: #173327;
+    --warn: #f0a868;
+    --warn-soft: #3a2a17;
+    --danger: #f2827b;
+    --shadow: none;
+    --on-primary: #0f171c;
+    color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 11; background: var(--surface); }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+a { color: var(--accent); }
+.loading { display: grid; place-items: center; height: 100%; color: var(--muted); }
+
+/* ---------- layout ---------- */
+.shell { display: flex; flex-direction: column; min-height: 100%; }
+.topbar {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10;
+  display: flex; align-items: center; gap: 12px;
+  padding-block: 10px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  background: var(--surface); border-bottom: 1px solid var(--border);
+}
+.brand { font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 8px; }
+.brand img { width: 26px; height: 26px; }
+.topbar .spacer { flex: 1; }
+.topbar .who { color: var(--muted); font-size: 14px; }
+main { flex: 1; width: 100%; max-width: 860px; margin: 0 auto; padding-block: 16px 96px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); min-width: 0; }
+.tabs {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 10;
+  display: flex; justify-content: center;
+  background: var(--surface); border-top: 1px solid var(--border);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.tabs button {
+  flex: 1; max-width: 160px; border: 0; background: none; padding: 10px 4px 8px;
+  color: var(--muted); font-size: 12px; display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer;
+}
+.tabs button .ico { font-size: 20px; line-height: 1; }
+.tabs button.active { color: var(--primary); font-weight: 600; }
+@media (min-width: 900px) {
+  .tabs { position: static; border: 0; background: none; padding: 0; }
+  .tabs button { flex-direction: row; font-size: 15px; gap: 6px; padding: 8px 12px; border-radius: 10px; }
+  .tabs button.active { background: var(--accent-soft); }
+  .topbar .tabs-slot { display: flex; }
+  main { padding-bottom: 32px; }
+}
+
+h1 { font-size: 22px; margin: 4px 0 14px; }
+h2 { font-size: 17px; margin: 22px 0 10px; }
+.muted { color: var(--muted); }
+.small { font-size: 14px; }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.row.between { justify-content: space-between; }
+.grow { flex: 1; min-width: 0; }
+
+/* ---------- controls ---------- */
+.btn {
+  border: 1px solid var(--border); background: var(--surface); padding: 9px 14px; border-radius: 10px;
+  cursor: pointer; font-weight: 500;
+}
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--primary); border-color: var(--primary); color: var(--on-primary); }
+.btn.ghost { border-color: transparent; background: none; }
+.btn.small { padding: 5px 10px; font-size: 14px; }
+.btn:disabled { opacity: 0.5; cursor: default; }
+input[type="text"], input[type="email"], input[type="password"], input[type="date"], input[type="number"], input[type="search"], select, textarea {
+  width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface);
+}
+textarea { resize: vertical; min-height: 44px; }
+input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: transparent; }
+label { display: block; font-size: 14px; color: var(--muted); margin: 10px 0 4px; }
+.form-grid { display: grid; gap: 0 12px; grid-template-columns: 1fr; }
+@media (min-width: 600px) { .form-grid { grid-template-columns: 1fr 1fr; } }
+.error { color: var(--danger); font-size: 14px; margin-top: 8px; }
+
+/* ---------- cards & lists ---------- */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 14px 16px; }
+.card + .card { margin-top: 10px; }
+.list { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+.list-item { display: flex; gap: 12px; align-items: center; padding: 12px 16px; border-top: 1px solid var(--border); cursor: default; }
+.list-item:first-child { border-top: 0; }
+.list-item.link { cursor: pointer; }
+.list-item.link:hover { background: var(--surface-2); }
+.list-item .title { font-weight: 600; }
+.empty { padding: 18px 16px; color: var(--muted); }
+.badge { display: inline-block; font-size: 12px; padding: 2px 8px; border-radius: 99px; background: var(--surface-2); color: var(--muted); white-space: nowrap; }
+.badge.kunde, .badge.vundet { background: var(--ok-soft); color: var(--ok); }
+.badge.lead, .badge.ny, .badge.forhandling, .badge.tilbud-sendt { background: var(--accent-soft); color: var(--accent); }
+.badge.late { background: var(--warn-soft); color: var(--warn); }
+.kpis { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+@media (min-width: 700px) { .kpis { grid-template-columns: repeat(4, 1fr); } }
+.kpi .num { font-size: 28px; font-weight: 700; color: var(--primary); line-height: 1.1; }
+.kpi .lbl { font-size: 13px; color: var(--muted); }
+.kpi.warn .num { color: var(--warn); }
+.bar-row { display: grid; grid-template-columns: 110px 1fr auto; gap: 10px; align-items: center; padding: 6px 0; font-size: 14px; }
+.bar { height: 10px; border-radius: 99px; background: var(--surface-2); overflow: hidden; }
+.bar > span { display: block; height: 100%; background: var(--accent); border-radius: 99px; }
+.timeline .list-item { align-items: flex-start; }
+.type-ico { width: 32px; height: 32px; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--accent-soft); font-size: 15px; }
+.check { width: 22px; height: 22px; flex: none; accent-color: var(--primary); }
+.done .title { text-decoration: line-through; color: var(--muted); }
+.kv { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; font-size: 15px; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; overflow-wrap: anywhere; }
+
+/* ---------- assistant ---------- */
+.chat { display: flex; flex-direction: column; gap: 10px; padding-bottom: 170px; }
+.bubble { max-width: 88%; padding: 10px 14px; border-radius: 16px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.bubble.user { align-self: flex-end; background: var(--primary); color: var(--on-primary); border-bottom-right-radius: 4px; }
+.bubble.assistant { align-self: flex-start; background: var(--surface); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+.bubble.thinking { color: var(--muted); font-style: italic; }
+.actions { align-self: flex-start; display: flex; flex-direction: column; gap: 4px; }
+.action-chip { font-size: 13px; padding: 4px 10px; border-radius: 99px; background: var(--ok-soft); color: var(--ok); }
+.welcome { text-align: center; padding: 28px 8px 8px; }
+.welcome .examples { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; text-align: left; }
+.welcome .examples button { text-align: left; }
+.composer {
+  position: fixed; left: 0; right: 0; bottom: calc(58px + env(safe-area-inset-bottom)); z-index: 9;
+  background: linear-gradient(to top, var(--bg) 75%, transparent); padding-block: 18px 10px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.composer-inner { max-width: 860px; margin: 0 auto; display: flex; gap: 8px; align-items: flex-end; }
+.composer textarea { min-height: 48px; max-height: 160px; border-radius: 24px; padding: 12px 16px; }
+.mic {
+  width: 64px; height: 64px; flex: none; border-radius: 50%; border: 0; cursor: pointer;
+  background: var(--primary); color: var(--on-primary); font-size: 26px; display: grid; place-items: center; box-shadow: var(--shadow);
+}
+.mic.recording { background: var(--rec); color: var(--on-primary); animation: pulse 1.2s infinite; }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 var(--pulse); } 100% { box-shadow: 0 0 0 18px var(--pulse-0); } }
+.send { width: 48px; height: 48px; flex: none; border-radius: 50%; }
+.composer .hint { max-width: 860px; margin: 6px auto 0; font-size: 12px; color: var(--muted); text-align: center; }
+@media (min-width: 900px) { .composer { bottom: 0; } .chat { padding-bottom: 130px; } }
+
+/* ---------- dialogs ---------- */
+dialog { border: 0; border-radius: var(--radius); padding: 18px; width: min(520px, calc(100% - 32px)); background: var(--surface); color: var(--text); }
+dialog::backdrop { background: var(--backdrop); }
+dialog h2 { margin-top: 0; }
+dialog .row.end { justify-content: flex-end; margin-top: 16px; }
+
+.login { max-width: 380px; margin: 10vh auto 0; padding: 0 16px; }
+.login .brand { justify-content: center; font-size: 22px; margin-bottom: 18px; }
+.login .brand img { width: 40px; height: 40px; }
+.toast { position: fixed; left: 50%; top: 16px; transform: translateX(-50%); z-index: 50; background: var(--text); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-size: 14px; }
+.hidden { display: none !important; }
+.login form .row { margin-top: 16px; }
+
+.badge.demo { background: var(--warn-soft); color: var(--warn); font-weight: 600; }
+.demo-note { font-size: 13px; color: var(--muted); background: var(--surface-2); border-radius: 10px; padding: 8px 12px; margin-bottom: 12px; }
+.topbar .who { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+@media (prefers-reduced-motion: reduce) { .mic.recording { animation: none; } }
+
+</style>
+<div id="app" class="loading">Indlæser…</div>
+<script>
+// ===== Demo backend: in-memory CRM + assistant (runs entirely in the browser) =====
+const DEMO = (() => {
+  const day = (o) => { const d = new Date(); d.setDate(d.getDate() + o); return d.toISOString().slice(0, 10); };
+  const todayIso = () => new Date().toISOString().slice(0, 10);
+  const nowTs = () => new Date().toISOString().replace("T", " ").slice(0, 19);
+  const STAGES = ["ny", "tilbud sendt", "forhandling", "vundet", "tabt"];
+  const TYPES = ["møde", "opkald", "email", "note"];
+  const ids = { n: 1 };
+  const nid = () => ids.n++;
+
+  const db = { users: [], customers: [], contacts: [], activities: [], tasks: [], deals: [] };
+  const U = {};
+  for (const [k, name, email, role] of [
+    ["anne", "Anne Kjær", "anne@demo.dk", "admin"], ["lars", "Lars Mikkelsen", "lars@demo.dk", "user"],
+    ["sofie", "Sofie Brandt", "sofie@demo.dk", "user"], ["mads", "Mads Thygesen", "mads@demo.dk", "user"],
+  ]) { const u = { id: nid(), name, email, role, active: 1 }; db.users.push(u); U[k] = u.id; }
+
+  const addCustomer = (d) => { const c = { id: nid(), status: "kunde", created_at: nowTs(), updated_at: nowTs(), ...d }; db.customers.push(c); return c.id; };
+  const addContact = (customer_id, d) => { const c = { id: nid(), customer_id, ...d }; db.contacts.push(c); return c.id; };
+  const addActivity = (d) => { const a = { id: nid(), occurred_at: todayIso(), ...d }; db.activities.push(a); return a.id; };
+  const addTask = (d) => { const t = { id: nid(), status: "åben", ...d }; db.tasks.push(t); return t.id; };
+  const addDeal = (d) => { const x = { id: nid(), stage: "ny", updated_at: nowTs(), ...d }; db.deals.push(x); return x.id; };
+
+  // ---- seed (fictional) ----
+  const nordvvs = addCustomer({ name: "Nordjysk VVS ApS", cvr: "38112233", industry: "VVS og installation", city: "Aalborg", phone: "98 12 34 56", email: "kontakt@nordjyskvvs.dk", owner_id: U.lars });
+  const bakkehus = addCustomer({ name: "Bakkehus Tømrer & Snedker", industry: "Byggeri", city: "Hjørring", phone: "98 90 11 22", owner_id: U.sofie });
+  const limfjord = addCustomer({ name: "Limfjord Logistik A/S", cvr: "29445566", industry: "Transport og lager", city: "Nørresundby", owner_id: U.lars });
+  const skagen = addCustomer({ name: "Skagen Fiskeeksport", industry: "Fødevarer", city: "Skagen", status: "lead", owner_id: U.mads });
+  const vendsyssel = addCustomer({ name: "Vendsyssel Revision", industry: "Revision og rådgivning", city: "Brønderslev", owner_id: U.anne });
+  const klitgaard = addCustomer({ name: "Klitgaard Maskinservice", industry: "Landbrugsmaskiner", city: "Frederikshavn", status: "lead", owner_id: U.sofie });
+  const havnecafe = addCustomer({ name: "Havnecaféen Sæby", industry: "Restauration", city: "Sæby", status: "tidligere kunde", notes: "Stoppede samarbejdet i foråret pga. ejerskifte.", owner_id: U.mads });
+  const dronning = addCustomer({ name: "Dronninglund Tandklinik", industry: "Sundhed", city: "Dronninglund", owner_id: U.anne });
+  const mette = addContact(nordvvs, { name: "Mette Holm", title: "Indkøbschef", phone: "22 33 44 55", email: "mh@nordjyskvvs.dk" });
+  addContact(nordvvs, { name: "Jesper Nørgaard", title: "Direktør", phone: "40 11 22 33" });
+  const peter = addContact(bakkehus, { name: "Peter Bakkehus", title: "Ejer", phone: "20 45 67 89" });
+  const karina = addContact(limfjord, { name: "Karina Vestergaard", title: "Driftschef", email: "kv@limfjordlogistik.dk" });
+  const ole = addContact(skagen, { name: "Ole Krogh", title: "Indehaver", phone: "51 23 45 67" });
+  const hanne = addContact(vendsyssel, { name: "Hanne Lund", title: "Partner" });
+  addContact(klitgaard, { name: "Søren Klitgaard", title: "Værkfører", phone: "30 98 76 54" });
+  addContact(dronning, { name: "Louise Damgaard", title: "Klinikchef" });
+  const act = (customer_id, contact_id, u, type, summary, o) => addActivity({ customer_id, contact_id, user_id: U[u], type, summary, occurred_at: day(o) });
+  act(nordvvs, mette, "lars", "møde", "Møde om udskiftning af deres planlægningssystem. De er 12 montører og vil gerne have mobiladgang. Mette beder om et tilbud på 15 licenser inkl. opsætning.", -3);
+  act(nordvvs, mette, "lars", "opkald", "Mette ringede og spurgte til leveringstid. Lovede svar inden fredag.", -1);
+  act(bakkehus, peter, "sofie", "møde", "Besøg på værkstedet. Peter er tilfreds, men oplever at fakturering tager for lang tid. Interesseret i at høre om automatisering.", -6);
+  act(limfjord, karina, "lars", "email", "Karina har sendt kontrakten retur underskrevet. Opstart planlagt til næste måned.", -2);
+  act(skagen, ole, "mads", "opkald", "Første samtale. Ole har hørt om os via Vendsyssel Revision. Vil gerne have et møde efter sæsonen.", -9);
+  act(vendsyssel, hanne, "anne", "møde", "Årligt statusmøde. Alt kører fint. Hanne nævnte at de åbner kontor i Aalborg til foråret og får brug for 5 ekstra arbejdspladser.", -12);
+  act(dronning, null, "anne", "note", "Supportsag løst: problemer med booking-systemets integration til kalenderen.", -4);
+  const tk = (customer_id, title, o, u) => addTask({ customer_id, title, due_date: day(o), assigned_to: U[u], created_by: U[u] });
+  tk(nordvvs, "Send tilbud på 15 licenser til Mette Holm", 2, "lars");
+  tk(nordvvs, "Svar Mette om leveringstid", 0, "lars");
+  tk(bakkehus, "Send materiale om automatisk fakturering til Peter", -1, "sofie");
+  tk(skagen, "Book møde med Ole Krogh efter sæsonen", 14, "mads");
+  tk(vendsyssel, "Følg op på nyt kontor i Aalborg", 30, "anne");
+  tk(klitgaard, "Ring til Søren og præsentér os", 5, "sofie");
+  addDeal({ customer_id: nordvvs, title: "15 licenser + opsætning", value_dkk: 85000, stage: "tilbud sendt", expected_close: day(21), owner_id: U.lars });
+  addDeal({ customer_id: limfjord, title: "Lagerstyring – fase 1", value_dkk: 240000, stage: "vundet", expected_close: day(-2), owner_id: U.lars });
+  addDeal({ customer_id: bakkehus, title: "Automatisk fakturering", value_dkk: 32000, stage: "ny", expected_close: day(45), owner_id: U.sofie });
+  addDeal({ customer_id: vendsyssel, title: "5 arbejdspladser, Aalborg-kontor", value_dkk: 60000, stage: "forhandling", expected_close: day(60), owner_id: U.anne });
+  addDeal({ customer_id: havnecafe, title: "Kassesystem", value_dkk: 18000, stage: "tabt", expected_close: day(-120), owner_id: U.mads });
+
+  // ---- queries ----
+  const userName = (id) => db.users.find((u) => u.id === id)?.name ?? null;
+  const custName = (id) => db.customers.find((c) => c.id === id)?.name ?? null;
+  const contactName = (id) => db.contacts.find((c) => c.id === id)?.name ?? null;
+  const requireCustomer = (id) => { const c = db.customers.find((c) => c.id === Number(id)); if (!c) throw new Error(`Kunde med id ${id} findes ikke`); return c; };
+  const byDateDesc = (a, b) => (b.occurred_at > a.occurred_at ? 1 : b.occurred_at < a.occurred_at ? -1 : b.id - a.id);
+  const taskSort = (a, b) => (a.status === "færdig") - (b.status === "færdig") || (!a.due_date) - (!b.due_date) || String(a.due_date).localeCompare(String(b.due_date)) || a.id - b.id;
+
+  function normalize(s) {
+    return String(s ?? "").toLowerCase().replace(/\b(aps|a\/s|as|i\/s|ivs|holding)\b/g, " ").replace(/[^a-z0-9æøå@.\s]/g, " ").replace(/\s+/g, " ").trim();
+  }
+  function tokenScore(q, text) {
+    const words = normalize(text).split(" ").filter(Boolean);
+    let score = 0;
+    for (const t of q) {
+      let best = 0;
+      for (const w of words) {
+        if (w === t) best = Math.max(best, 3);
+        else if ((w.startsWith(t) || t.startsWith(w)) && w.length >= 3 && t.length >= 3) best = Math.max(best, 2);
+        else if (t.length >= 4 && w.includes(t)) best = Math.max(best, 1);
+      }
+      score += best;
+    }
+    return score;
+  }
+  function searchCustomers(query, limit = 8) {
+    const q = normalize(query).split(" ").filter(Boolean);
+    if (!q.length) return [];
+    return db.customers
+      .map((c) => {
+        const contacts = db.contacts.filter((x) => x.customer_id === c.id).map((x) => x.name).join(" ");
+        return { c, s: tokenScore(q, c.name) * 2 + tokenScore(q, `${c.cvr ?? ""} ${c.city ?? ""} ${c.industry ?? ""}`) + tokenScore(q, contacts) };
+      })
+      .filter((x) => x.s > 0).sort((a, b) => b.s - a.s).slice(0, limit)
+      .map(({ c }) => ({ id: c.id, name: c.name, city: c.city, industry: c.industry, status: c.status, open_tasks: db.tasks.filter((t) => t.customer_id === c.id && t.status === "åben").length }));
+  }
+  function listCustomers(status) {
+    return db.customers.filter((c) => !status || c.status === status).sort((a, b) => a.name.localeCompare(b.name, "da"))
+      .map((c) => ({ ...c, owner_name: userName(c.owner_id), open_tasks: db.tasks.filter((t) => t.customer_id === c.id && t.status === "åben").length }));
+  }
+  const taskView = (t) => ({ ...t, customer_name: custName(t.customer_id), assigned_name: userName(t.assigned_to) });
+  function getCustomerDetail(id) {
+    const c = db.customers.find((c) => c.id === Number(id));
+    if (!c) return null;
+    return {
+      customer: { ...c, owner_name: userName(c.owner_id) },
+      contacts: db.contacts.filter((x) => x.customer_id === c.id).sort((a, b) => a.name.localeCompare(b.name, "da")),
+      activities: db.activities.filter((a) => a.customer_id === c.id).sort(byDateDesc).map((a) => ({ ...a, user_name: userName(a.user_id), contact_name: contactName(a.contact_id) })),
+      tasks: db.tasks.filter((t) => t.customer_id === c.id).sort(taskSort).map(taskView),
+      deals: db.deals.filter((d) => d.customer_id === c.id).map((d) => ({ ...d, owner_name: userName(d.owner_id) })),
+    };
+  }
+  function listTasks({ status = "åben", assigned_to, due_before, customer_id } = {}) {
+    return db.tasks.filter((t) => (status === "alle" || !status || t.status === status) && (!assigned_to || t.assigned_to === assigned_to)
+      && (!due_before || (t.due_date && t.due_date <= due_before)) && (!customer_id || t.customer_id === Number(customer_id)))
+      .sort(taskSort).map(taskView);
+  }
+  function recentActivities({ days = 7, user_id, limit = 30 } = {}) {
+    const from = day(-Math.max(1, Number(days) || 7));
+    return db.activities.filter((a) => a.occurred_at >= from && (!user_id || a.user_id === user_id)).sort(byDateDesc).slice(0, limit)
+      .map((a) => ({ id: a.id, type: a.type, summary: a.summary, occurred_at: a.occurred_at, customer_id: a.customer_id, customer_name: custName(a.customer_id), user_name: userName(a.user_id), contact_name: contactName(a.contact_id) }));
+  }
+  function listDeals({ stage, open_only } = {}) {
+    return db.deals.filter((d) => (stage ? d.stage === stage : !open_only || !["vundet", "tabt"].includes(d.stage)))
+      .map((d) => ({ id: d.id, title: d.title, value_dkk: d.value_dkk, stage: d.stage, expected_close: d.expected_close, customer_id: d.customer_id, customer_name: custName(d.customer_id), owner_name: userName(d.owner_id) }));
+  }
+  function overview() {
+    const t = todayIso();
+    return {
+      customers: db.customers.filter((c) => c.status === "kunde").length,
+      leads: db.customers.filter((c) => c.status === "lead").length,
+      open_tasks: db.tasks.filter((x) => x.status === "åben").length,
+      overdue_tasks: db.tasks.filter((x) => x.status === "åben" && x.due_date && x.due_date < t).length,
+      activities_7d: db.activities.filter((a) => a.occurred_at >= day(-7)).length,
+      pipeline: STAGES.map((s) => { const ds = db.deals.filter((d) => d.stage === s); return { stage: s, count: ds.length, value: ds.reduce((n, d) => n + (d.value_dkk || 0), 0) }; }),
+    };
+  }
+  function findUser(name) {
+    if (!name) return undefined;
+    const q = normalize(name).split(" ").filter(Boolean);
+    let best = null;
+    for (const u of db.users) { const s = tokenScore(q, u.name); if (s > 0 && (!best || s > best.s)) best = { u, s }; }
+    if (!best) throw new Error(`Ingen medarbejder matcher "${name}"`);
+    return best.u.id;
+  }
+  const pick = (o, keys) => Object.fromEntries(keys.filter((k) => o[k] !== undefined && o[k] !== "").map((k) => [k, o[k]]));
+  const isDate = (s) => !s || /^\d{4}-\d{2}-\d{2}$/.test(s);
+
+  // ---- writes ----
+  const W = {
+    createCustomer(d, uid) { if (!d.name) throw new Error("Kunden skal have et navn"); return addCustomer({ ...pick(d, ["name", "cvr", "industry", "address", "city", "phone", "email", "website", "status", "notes"]), owner_id: d.owner_id || uid }); },
+    updateCustomer(id, d) { const c = requireCustomer(id); Object.assign(c, pick(d, ["name", "cvr", "industry", "address", "city", "phone", "email", "website", "status", "notes", "owner_id"]), { updated_at: nowTs() }); },
+    addContact(cid, d) { requireCustomer(cid); if (!d.name) throw new Error("Kontaktpersonen skal have et navn"); return addContact(Number(cid), pick(d, ["name", "title", "phone", "email", "notes"])); },
+    logActivity(d) {
+      requireCustomer(d.customer_id); if (!d.summary) throw new Error("Aktiviteten mangler et resumé"); if (!isDate(d.occurred_at)) throw new Error("Dato skal være ÅÅÅÅ-MM-DD");
+      return addActivity({ customer_id: Number(d.customer_id), contact_id: d.contact_id ? Number(d.contact_id) : null, user_id: d.user_id, type: TYPES.includes(d.type) ? d.type : "note", summary: d.summary, occurred_at: d.occurred_at || todayIso() });
+    },
+    createTask(d) { if (d.customer_id) requireCustomer(d.customer_id); if (!d.title) throw new Error("Opgaven mangler en titel"); if (!isDate(d.due_date)) throw new Error("Frist skal være ÅÅÅÅ-MM-DD"); return addTask({ customer_id: d.customer_id ? Number(d.customer_id) : null, title: d.title, due_date: d.due_date || null, assigned_to: d.assigned_to || d.created_by, created_by: d.created_by }); },
+    setTask(id, status) { const t = db.tasks.find((t) => t.id === Number(id)); if (!t) throw new Error(`Opgave med id ${id} findes ikke`); t.status = status; },
+    createDeal(cid, d) { requireCustomer(cid); if (!d.title) throw new Error("Salgsmuligheden mangler en titel"); return addDeal({ customer_id: Number(cid), ...pick(d, ["title", "value_dkk", "expected_close", "owner_id"]), stage: STAGES.includes(d.stage) ? d.stage : "ny" }); },
+    updateDeal(id, d) { const x = db.deals.find((x) => x.id === Number(id)); if (!x) throw new Error(`Salgsmulighed med id ${id} findes ikke`); if (d.stage && !STAGES.includes(d.stage)) throw new Error("Ukendt fase"); Object.assign(x, pick(d, ["title", "value_dkk", "stage", "expected_close"]), { updated_at: nowTs() }); },
+  };
+
+  // ---- the assistant ----
+  const me = () => db.users.find((u) => u.id === U.lars);
+  const RULES = () => `Du er salgsassistenten i en virksomheds CRM-system (dette er en demo med fiktive data). Medarbejderne taler typisk til dig via mobilen lige efter et møde, og beskeden er ofte dikteret tale med stavefejl. Fortolk velvilligt.
+
+Dagens dato: ${todayIso()} (${new Date().toLocaleDateString("da-DK", { weekday: "long" })}). Du taler med: ${me().name}.
+
+Sådan arbejder du:
+- Find altid kunden med search_customers før du registrerer noget. Ved flere mulige match: spørg. Findes kunden ikke: foreslå at oprette den.
+- Før du gemmer noget, så opsummér kort hvad du vil gemme og spørg "Skal jeg gemme det?". Gem først når brugeren har bekræftet (fx "ja"). Har brugeren tydeligt bedt dig gemme præcis dette, må du gemme med det samme.
+- Mødereferater → log_activity, nye personer → add_contact, aftaler om noget senere → create_task, tilbud/ordrer → create_deal eller update_deal.
+- Omregn relative datoer ("på tirsdag", "om to uger") til ÅÅÅÅ-MM-DD ud fra dagens dato.
+- Skriv resuméer kort og sagligt på dansk med de vigtige fakta. Opfind aldrig information. Brug værktøjerne når du svarer på spørgsmål – gæt ikke.
+
+Svar altid på dansk, kort og naturligt som i en samtale (svarene kan blive læst højt). Ingen tabeller eller overskrifter. Nævn ikke interne id-numre.`;
+
+  const S = (properties, required = []) => ({ type: "object", properties, required });
+  const str = (d) => ({ type: "string", description: d });
+  const int = (d) => ({ type: "integer", description: d });
+  const dt = (d) => ({ type: "string", description: d + " Format ÅÅÅÅ-MM-DD." });
+
+  function makeTools(onAction) {
+    const act = (text, customer_id) => onAction({ text, customer_id });
+    return [
+      { name: "search_customers", description: "Søg kunder på firmanavn, kontaktpersons navn, by eller branche. Returnerer liste med id og navn.", inputSchema: S({ query: str("Søgetekst") }, ["query"]), execute: ({ query }) => searchCustomers(String(query)) },
+      { name: "get_customer", description: "Hent alt om én kunde: stamdata, kontakter, seneste aktiviteter, opgaver og salgsmuligheder.", inputSchema: S({ customer_id: int("Kundens id") }, ["customer_id"]),
+        execute: ({ customer_id }) => { const d = getCustomerDetail(Number(customer_id)); if (!d) throw new Error("Kunden findes ikke"); return { ...d, activities: d.activities.slice(0, 10) }; } },
+      { name: "log_activity", description: "Registrér møde, opkald, e-mail eller note på en kunde (kun efter bekræftelse).", inputSchema: S({ customer_id: int("Kundens id"), contact_id: int("Kontaktpersonens id, hvis kendt"), type: { type: "string", enum: TYPES }, summary: str("Kort resumé på dansk"), occurred_at: dt("Dato, udelad for i dag.") }, ["customer_id", "type", "summary"]),
+        execute: (i) => { const id = W.logActivity({ ...i, user_id: me().id }); act(`${i.type[0].toUpperCase() + i.type.slice(1)} registreret hos ${custName(Number(i.customer_id))}`, Number(i.customer_id)); return { ok: true, activity_id: id }; } },
+      { name: "create_task", description: "Opret en opfølgningsopgave/påmindelse (kun efter bekræftelse).", inputSchema: S({ title: str("Hvad skal gøres"), customer_id: int("Kundens id"), due_date: dt("Frist."), assigned_to_name: str("Medarbejder; udelad for brugeren selv") }, ["title"]),
+        execute: (i) => { const id = W.createTask({ ...i, assigned_to: findUser(i.assigned_to_name) ?? me().id, created_by: me().id }); act(`Opgave oprettet: ${i.title}`, i.customer_id ? Number(i.customer_id) : null); return { ok: true, task_id: id }; } },
+      { name: "complete_task", description: "Markér en opgave som færdig.", inputSchema: S({ task_id: int("Opgavens id") }, ["task_id"]), execute: ({ task_id }) => { W.setTask(task_id, "færdig"); act("Opgave markeret som færdig"); return { ok: true }; } },
+      { name: "list_tasks", description: "Vis åbne opgaver. mine_only=true for brugerens egne.", inputSchema: S({ mine_only: { type: "boolean" }, assigned_to_name: str("Kun for denne medarbejder"), due_before: dt("Frist senest.") }),
+        execute: (i) => listTasks({ assigned_to: i.mine_only ? me().id : findUser(i.assigned_to_name), due_before: i.due_before }).map(({ id, title, due_date, customer_name, assigned_name }) => ({ id, title, due_date, customer_name, assigned_name })) },
+      { name: "add_contact", description: "Tilføj en kontaktperson til en kunde (kun efter bekræftelse).", inputSchema: S({ customer_id: int("Kundens id"), name: str("Navn"), title: str("Stilling"), phone: str("Telefon"), email: str("E-mail") }, ["customer_id", "name"]),
+        execute: (i) => { const id = W.addContact(i.customer_id, i); act(`Kontaktperson tilføjet: ${i.name}`, Number(i.customer_id)); return { ok: true, contact_id: id }; } },
+      { name: "create_customer", description: "Opret ny kunde, kun når søgning viser at den ikke findes og brugeren har bekræftet.", inputSchema: S({ name: str("Firmanavn"), city: str("By"), industry: str("Branche"), status: { type: "string", enum: ["lead", "kunde"] } }, ["name"]),
+        execute: (i) => { const id = W.createCustomer(i, me().id); act(`Ny kunde oprettet: ${i.name}`, id); return { ok: true, customer_id: id }; } },
+      { name: "create_deal", description: "Opret salgsmulighed/tilbud på en kunde (kun efter bekræftelse).", inputSchema: S({ customer_id: int("Kundens id"), title: str("Beskrivelse"), value_dkk: { type: "number", description: "Værdi i DKK" }, stage: { type: "string", enum: STAGES }, expected_close: dt("Forventet afslutning.") }, ["customer_id", "title"]),
+        execute: (i) => { const id = W.createDeal(i.customer_id, { ...i, owner_id: me().id }); act(`Salgsmulighed oprettet: ${i.title}`, Number(i.customer_id)); return { ok: true, deal_id: id }; } },
+      { name: "update_deal", description: "Opdater salgsmulighed: fase, værdi eller dato (kun efter bekræftelse).", inputSchema: S({ deal_id: int("Id"), stage: { type: "string", enum: STAGES }, value_dkk: { type: "number" }, expected_close: dt("Ny dato.") }, ["deal_id"]),
+        execute: (i) => { W.updateDeal(i.deal_id, i); act(`Salgsmulighed opdateret${i.stage ? ": " + i.stage : ""}`); return { ok: true }; } },
+      { name: "pipeline_and_overview", description: "Nøgletal og alle salgsmuligheder med fase og værdi.", execute: () => ({ ...overview(), deals: listDeals({}) }) },
+      { name: "recent_activity", description: "Seneste registrerede aktiviteter på tværs af kunder.", inputSchema: S({ days: int("Antal dage tilbage, standard 7"), user_name: str("Kun denne medarbejder") }),
+        execute: (i) => recentActivities({ days: i.days, user_id: findUser(i.user_name) }) },
+    ];
+  }
+
+  // Scripted fallback when Claude isn't available in this view.
+  function scripted(text) {
+    const t = text.toLowerCase();
+    const hit = searchCustomers(text, 1)[0];
+    if (/opgave/.test(t)) {
+      const ts = listTasks({ assigned_to: me().id });
+      return ts.length ? "Du har disse åbne opgaver:\n" + ts.map((x) => `• ${x.title}${x.due_date ? " (frist " + x.due_date.split("-").reverse().slice(0, 2).join("/") + ")" : ""}`).join("\n") : "Du har ingen åbne opgaver.";
+    }
+    if (/pipeline|overblik/.test(t) && !hit) {
+      const o = overview(); const open = o.pipeline.filter((p) => !["vundet", "tabt"].includes(p.stage));
+      return `Der er ${open.reduce((n, p) => n + p.count, 0)} åbne salgsmuligheder til i alt ${open.reduce((n, p) => n + p.value, 0).toLocaleString("da-DK")} kr. ` + open.filter((p) => p.count).map((p) => `${p.count} i fasen "${p.stage}"`).join(", ") + `. Der er ${o.overdue_tasks} forfalden opgave.`;
+    }
+    if (hit) {
+      const d = getCustomerDetail(hit.id);
+      const last = d.activities[0];
+      const open = d.tasks.filter((x) => x.status === "åben");
+      return `${d.customer.name}: ${last ? `Seneste aktivitet var ${last.type} ${last.occurred_at.split("-").reverse().slice(0, 2).join("/")}: ${last.summary}` : "Ingen aktiviteter endnu."}` +
+        (open.length ? ` Åbne opgaver: ${open.map((x) => x.title).join("; ")}.` : "") +
+        (d.deals.length ? ` Salg: ${d.deals.map((x) => `${x.title} (${x.stage})`).join("; ")}.` : "");
+    }
+    return "I denne udgave uden AI kan jeg vise status på en kunde, dine opgaver og pipelinen. Prøv fx \"Hvad er status på Bakkehus?\".";
+  }
+
+  let sampleFn; // undefined = not resolved yet, null = unavailable
+  const ready = (window.claude?.use ? window.claude.use("sample") : Promise.resolve(null)).then((s) => (sampleFn = s)).catch(() => (sampleFn = null));
+  const turns = [];
+  let aiOff = false;
+
+  async function chat(message, { onText, onAction }) {
+    await ready;
+    if (!sampleFn || aiOff) return { reply: scripted(message), mode: "scripted" };
+    turns.push({ role: "user", content: message });
+    let latest = "", marker = 0;
+    const tools = makeTools(onAction).map((t) => ({ ...t, execute: (i, c) => { marker = latest.length; return t.execute(i || {}, c); } }));
+    try {
+      const { text } = await sampleFn([{ role: "user", content: RULES() }, ...turns.slice(-16)], {
+        cache: false, modelTier: "quick", tools,
+        onText: ({ text }) => { latest = text; const shown = text.slice(marker).trim(); if (shown) onText(shown); },
+      });
+      // With tools, earlier rounds' text is joined in front; show only the last round.
+      const final = text.slice(marker).trim() || text.trim();
+      turns.push({ role: "assistant", content: final });
+      return { reply: final, mode: "ai" };
+    } catch (e) {
+      turns.pop();
+      if (["not_granted", "sampling_disabled", "tools_unavailable", "not_declared", "capability_disabled", "capability_removed"].includes(e?.code)) {
+        aiOff = true;
+        return { reply: scripted(message), mode: "scripted", note: "AI er ikke tilgængelig her, så du ser en forenklet version uden AI." };
+      }
+      if (e?.code === "rate_limited") throw new Error("For mange forespørgsler lige nu. Vent lidt og prøv igen.");
+      throw new Error("Assistenten kunne ikke svare. Prøv igen.");
+    }
+  }
+
+  // ---- REST-like router used by the app ----
+  const ME = () => ({ id: me().id, name: me().name, email: me().email, role: me().role });
+  async function api(path, { method = "GET", body } = {}) {
+    await new Promise((r) => setTimeout(r, 60));
+    const url = new URL(path, "https://demo.local");
+    const p = url.pathname, q = url.searchParams;
+    let m;
+    try {
+      if (p === "/api/me") return ME();
+      if (p === "/api/users") return db.users.map(({ id, name, email, role, active }) => ({ id, name, email, role, active }));
+      if (p === "/api/overview") return { ...overview(), my_tasks: listTasks({ assigned_to: me().id }).slice(0, 10), recent: recentActivities({ days: 14, limit: 10 }) };
+      if (p === "/api/customers" && method === "GET") return q.get("q") ? searchCustomers(q.get("q"), 50) : listCustomers(q.get("status") || undefined);
+      if (p === "/api/customers" && method === "POST") return getCustomerDetail(W.createCustomer(body, me().id));
+      if ((m = p.match(/^\/api\/customers\/(\d+)$/))) {
+        if (method === "PATCH") W.updateCustomer(m[1], body);
+        const d = getCustomerDetail(m[1]); if (!d) throw new Error("Kunden findes ikke"); return d;
+      }
+      if ((m = p.match(/^\/api\/customers\/(\d+)\/contacts$/))) { W.addContact(m[1], body); return getCustomerDetail(m[1]); }
+      if ((m = p.match(/^\/api\/customers\/(\d+)\/activities$/))) { W.logActivity({ ...body, customer_id: m[1], user_id: me().id }); return getCustomerDetail(m[1]); }
+      if (p === "/api/tasks" && method === "GET") return listTasks({ status: q.get("status") || "åben", assigned_to: q.get("mine") === "1" ? me().id : undefined });
+      if (p === "/api/tasks" && method === "POST") return { id: W.createTask({ ...body, created_by: me().id }) };
+      if ((m = p.match(/^\/api\/tasks\/(\d+)$/))) { W.setTask(m[1], body.status); return { ok: true }; }
+      if (p === "/api/logout") return { ok: true };
+    } catch (e) {
+      throw new Error(e.message);
+    }
+    throw new Error("Ikke tilgængelig i demoen");
+  }
+
+  return { api, chat, me: ME, reset: () => { turns.length = 0; } };
+})();
+
+</script>
+<script>
+// Salgsassistent – frontend (vanilla JS, no build step).
+
+// ---------- helpers ----------
+function h(tag, attrs = {}, ...children) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v === undefined || v === null || v === false) continue;
+    if (k === "class") el.className = v;
+    else if (k.startsWith("on")) el.addEventListener(k.slice(2), v);
+    else if (k === "value") el.value = v;
+    else el.setAttribute(k, v === true ? "" : v);
+  }
+  for (const c of children.flat()) {
+    if (c === null || c === undefined || c === false) continue;
+    el.append(c instanceof Node ? c : document.createTextNode(String(c)));
+  }
+  return el;
+}
+
+const store = {
+  get(k) {
+    try {
+      return localStorage.getItem(k);
+    } catch {
+      return null;
+    }
+  },
+  set(k, v) {
+    try {
+      v === null ? localStorage.removeItem(k) : localStorage.setItem(k, v);
+    } catch {}
+  },
+};
+
+const api = DEMO.api;
+
+const today = () => new Date().toISOString().slice(0, 10);
+function fmtDate(iso) {
+  if (!iso) return "";
+  const d = new Date(iso.length === 10 ? iso + "T12:00:00" : iso.replace(" ", "T") + "Z");
+  return d.toLocaleDateString("da-DK", { day: "numeric", month: "short", year: d.getFullYear() === new Date().getFullYear() ? undefined : "numeric" });
+}
+const fmtDkk = (n) => (n == null ? "" : new Intl.NumberFormat("da-DK", { style: "currency", currency: "DKK", maximumFractionDigits: 0 }).format(n));
+const TYPE_ICO = { møde: "👥", opkald: "📞", email: "✉️", note: "📝" };
+const slug = (s) => String(s).replace(/\s+/g, "-");
+
+function toast(msg) {
+  const t = h("div", { class: "toast", role: "status" }, msg);
+  document.body.append(t);
+  setTimeout(() => t.remove(), 2600);
+}
+
+// ---------- state ----------
+const state = {
+  user: undefined,
+  tab: store.get("tab") || "assistent",
+  customerId: null,
+  chat: { id: null, items: [], busy: false, loaded: false },
+  speak: store.get("speak") === "1",
+};
+
+const app = document.getElementById("app");
+
+async function init() {
+  try {
+    state.user = await api("/api/me");
+  } catch {
+    state.user = null;
+  }
+  render();
+}
+
+function setTab(tab) {
+  state.tab = tab;
+  state.customerId = null;
+  store.set("tab", tab);
+  render();
+}
+
+function render() {
+  app.className = "";
+  app.replaceChildren();
+  if (!state.user) return app.append(loginView());
+  const tabs = [
+    ["assistent", "🎙️", "Assistent"],
+    ["kunder", "🏢", "Kunder"],
+    ["opgaver", "✅", "Opgaver"],
+    ["overblik", "📊", "Overblik"],
+  ];
+  if (state.user.role === "admin") tabs.push(["brugere", "👤", "Brugere"]);
+  const nav = h(
+    "nav",
+    { class: "tabs" },
+    tabs.map(([key, ico, label]) =>
+      h("button", { class: state.tab === key ? "active" : "", onclick: () => setTab(key) }, h("span", { class: "ico" }, ico), label),
+    ),
+  );
+  const desktop = window.matchMedia("(min-width: 900px)").matches;
+  const main = h("main");
+  app.append(
+    h(
+      "div",
+      { class: "shell" },
+      h(
+        "header",
+        { class: "topbar" },
+        h("div", { class: "brand" }, h("img", { src: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjExMiIgZmlsbD0iIzE2NDI1YiIvPjxyZWN0IHg9IjIwNiIgeT0iMTEyIiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjE4MCIgcng9IjUwIiBmaWxsPSIjZmZmIi8+PHBhdGggZD0iTTE1NiAyNTBhMTAwIDEwMCAwIDAgMCAyMDAgMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjI4IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNMjU2IDM1MHY1ME0yMDYgNDAwaDEwMCIgc3Ryb2tlPSIjODFjM2Q3IiBzdHJva2Utd2lkdGg9IjI4IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48L3N2Zz4=", alt: "" }), "Salgsassistent"),
+        desktop ? nav : null,
+        h("div", { class: "spacer" }),
+        h("span", { class: "who" }, state.user.name),
+        h("span", { class: "badge demo" }, "Demo"),
+      ),
+      main,
+      desktop ? null : nav,
+    ),
+  );
+  const views = { assistent: assistantView, kunder: customersView, opgaver: tasksView, overblik: overviewView, brugere: usersView };
+  (views[state.tab] || assistantView)(main);
+}
+
+async function logout() {
+  await api("/api/logout", { method: "POST" }).catch(() => {});
+  state.user = null;
+  state.chat = { id: null, items: [], busy: false, loaded: false };
+  store.set("conversation", null);
+  render();
+}
+
+// ---------- login ----------
+function loginView() {
+  const err = h("div", { class: "error", role: "alert" });
+  const email = h("input", { type: "email", autocomplete: "username", required: true });
+  const password = h("input", { type: "password", autocomplete: "current-password", required: true });
+  const form = h(
+    "form",
+    {
+      class: "card",
+      onsubmit: async (e) => {
+        e.preventDefault();
+        err.textContent = "";
+        try {
+          state.user = await api("/api/login", { method: "POST", body: { email: email.value, password: password.value } });
+          render();
+        } catch (ex) {
+          err.textContent = ex.message;
+        }
+      },
+    },
+    h("label", {}, "E-mail"),
+    email,
+    h("label", {}, "Adgangskode"),
+    password,
+    h("div", { class: "row" }, h("button", { class: "btn primary grow", type: "submit" }, "Log ind")),
+    err,
+  );
+  return h("div", { class: "login" }, h("div", { class: "brand" }, h("img", { src: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjExMiIgZmlsbD0iIzE2NDI1YiIvPjxyZWN0IHg9IjIwNiIgeT0iMTEyIiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjE4MCIgcng9IjUwIiBmaWxsPSIjZmZmIi8+PHBhdGggZD0iTTE1NiAyNTBhMTAwIDEwMCAwIDAgMCAyMDAgMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjI4IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNMjU2IDM1MHY1ME0yMDYgNDAwaDEwMCIgc3Ryb2tlPSIjODFjM2Q3IiBzdHJva2Utd2lkdGg9IjI4IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48L3N2Zz4=", alt: "" }), "Salgsassistent"), form);
+}
+
+// ---------- assistant ----------
+const SR = null; // the demo frame has no microphone access; use the keyboard's dictation
+
+function speak(text) {
+  if (!state.speak || !("speechSynthesis" in window)) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text.replace(/[*#_`]/g, ""));
+  u.lang = "da-DK";
+  const voice = speechSynthesis.getVoices().find((v) => v.lang?.toLowerCase().startsWith("da"));
+  if (voice) u.voice = voice;
+  speechSynthesis.speak(u);
+}
+
+function assistantView(main) {
+  const chatEl = h("div", { class: "chat", "aria-live": "polite" });
+  const input = h("textarea", { rows: 1, placeholder: "Skriv eller tal…", "aria-label": "Besked" });
+  const sendBtn = h("button", { class: "btn primary send", title: "Send", "aria-label": "Send" }, "➤");
+  const micBtn = h("button", { class: "mic", title: "Tal", "aria-label": "Start optagelse" }, "🎙️");
+
+  const draw = () => {
+    chatEl.replaceChildren();
+    if (!state.chat.items.length) {
+      const ex = [
+        "Jeg har lige været til møde med Mette fra Nordjysk VVS. De vil have tilbuddet senest på fredag, og jeg skal ringe til hende på tirsdag.",
+        "Hvad er status på Vendsyssel Revision?",
+        "Hvilke opgaver har jeg i denne uge?",
+        "Giv mig et overblik over pipelinen.",
+      ];
+      chatEl.append(
+        h(
+          "div",
+          { class: "welcome" },
+          h("h1", {}, `Hej ${state.user.name.split(" ")[0]} 👋`),
+          h("div", { class: "muted" }, "Fortæl mig hvad der er sket hos kunden, eller spørg om status. Jeg finder kunden og registrerer det for dig."),
+          h(
+            "div",
+            { class: "examples" },
+            ex.map((t) => h("button", { class: "btn", onclick: () => send(t) }, `“${t}”`)),
+          ),
+        ),
+      );
+    }
+    for (const it of state.chat.items) {
+      if (it.role === "actions") chatEl.append(h("div", { class: "actions" }, it.actions.map((a) => h("span", { class: "action-chip" }, "✓ " + a.text))));
+      else chatEl.append(h("div", { class: `bubble ${it.role}` }, it.text));
+    }
+    if (state.chat.busy) chatEl.append(h("div", { class: `bubble assistant ${state.chat.live ? "" : "thinking"}` }, state.chat.live || "Et øjeblik…"));
+    sendBtn.disabled = state.chat.busy;
+    micBtn.disabled = state.chat.busy;
+    window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+  };
+
+  async function send(text) {
+    text = (text ?? input.value).trim();
+    if (!text || state.chat.busy) return;
+    input.value = "";
+    autoSize();
+    state.chat.items.push({ role: "user", text });
+    state.chat.busy = true;
+    draw();
+    try {
+      state.chat.live = "";
+      const r = await DEMO.chat(text, {
+        onText: (t) => { state.chat.live = t; draw(); },
+        onAction: (a) => { state.chat.items.push({ role: "actions", actions: [a] }); state.chat.live = ""; draw(); },
+      });
+      if (r.note) state.chat.items.push({ role: "assistant", text: "ℹ️ " + r.note });
+      state.chat.items.push({ role: "assistant", text: r.reply });
+      speak(r.reply);
+    } catch (e) {
+      state.chat.items.push({ role: "assistant", text: "⚠️ " + e.message });
+    } finally {
+      state.chat.busy = false;
+      state.chat.live = "";
+      draw();
+    }
+  }
+
+  const autoSize = () => {
+    input.style.height = "auto";
+    input.style.height = Math.min(input.scrollHeight, 160) + "px";
+  };
+  input.addEventListener("input", autoSize);
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey && !matchMedia("(pointer: coarse)").matches) {
+      e.preventDefault();
+      send();
+    }
+  });
+  sendBtn.addEventListener("click", () => send());
+
+  // Speech recognition (browser built-in, Danish).
+  let rec = null;
+  let finalText = "";
+  if (!SR) micBtn.classList.add("hidden");
+  micBtn.addEventListener("click", () => {
+    if (rec) return rec.stop();
+    if ("speechSynthesis" in window) speechSynthesis.cancel();
+    rec = new SR();
+    rec.lang = "da-DK";
+    rec.continuous = true;
+    rec.interimResults = true;
+    finalText = input.value ? input.value + " " : "";
+    rec.onresult = (e) => {
+      let interim = "";
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const r = e.results[i];
+        if (r.isFinal) finalText += r[0].transcript + " ";
+        else interim += r[0].transcript;
+      }
+      input.value = (finalText + interim).trim();
+      autoSize();
+    };
+    rec.onerror = (e) => {
+      if (e.error === "not-allowed") toast("Giv browseren adgang til mikrofonen for at tale.");
+      else if (e.error !== "no-speech" && e.error !== "aborted") toast("Talegenkendelse fejlede: " + e.error);
+    };
+    rec.onend = () => {
+      rec = null;
+      micBtn.classList.remove("recording");
+      micBtn.setAttribute("aria-label", "Start optagelse");
+      micBtn.textContent = "🎙️";
+      if (input.value.trim()) send();
+    };
+    rec.start();
+    micBtn.classList.add("recording");
+    micBtn.setAttribute("aria-label", "Stop optagelse");
+    micBtn.textContent = "⏹";
+  });
+
+  const speakToggle = h("input", { type: "checkbox", class: "check", checked: state.speak });
+  speakToggle.addEventListener("change", () => {
+    state.speak = speakToggle.checked;
+    store.set("speak", state.speak ? "1" : "0");
+  });
+
+  main.append(
+    h("div", { class: "demo-note" }, "Demo med fiktive kunder. Assistenten bruger Claude via din egen Claude-konto, og ændringer nulstilles når siden genindlæses."),
+    h(
+      "div",
+      { class: "row between" },
+      h("label", { class: "row small" }, speakToggle, "Læs svar højt"),
+      h(
+        "button",
+        {
+          class: "btn small",
+          onclick: () => {
+            state.chat = { id: null, items: [], busy: false, loaded: true };
+            DEMO.reset();
+            store.set("conversation", null);
+            draw();
+          },
+        },
+        "Ny samtale",
+      ),
+    ),
+    chatEl,
+    h(
+      "div",
+      { class: "composer" },
+      h("div", { class: "composer-inner" }, input, sendBtn, micBtn),
+      h("div", { class: "hint" }, SR ? "Tryk på mikrofonen, tal, og tryk igen når du er færdig." : "Tal: tryk på mikrofonen på telefonens tastatur."),
+    ),
+  );
+  draw();
+
+  if (state.chat.id && !state.chat.loaded) {
+    state.chat.loaded = true;
+    api(`/api/chat/${state.chat.id}`)
+      .then((r) => {
+        state.chat.items = r.transcript;
+        draw();
+      })
+      .catch(() => {
+        state.chat.id = null;
+        store.set("conversation", null);
+      });
+  }
+}
+
+// ---------- customers ----------
+function customersView(main) {
+  if (state.customerId) return customerDetailView(main, state.customerId);
+  const listEl = h("div", { class: "list" }, h("div", { class: "empty" }, "Indlæser…"));
+  const search = h("input", { type: "search", placeholder: "Søg kunde, kontaktperson eller by…", "aria-label": "Søg" });
+  const status = h(
+    "select",
+    { "aria-label": "Status" },
+    h("option", { value: "" }, "Alle"),
+    h("option", { value: "kunde" }, "Kunder"),
+    h("option", { value: "lead" }, "Leads"),
+    h("option", { value: "tidligere kunde" }, "Tidligere kunder"),
+  );
+  let timer;
+  const load = async () => {
+    const q = search.value.trim();
+    const params = new URLSearchParams(q ? { q } : status.value ? { status: status.value } : {});
+    const rows = await api("/api/customers?" + params);
+    listEl.replaceChildren();
+    if (!rows.length) listEl.append(h("div", { class: "empty" }, q ? "Ingen kunder matcher søgningen." : "Ingen kunder endnu."));
+    for (const c of rows)
+      listEl.append(
+        h(
+          "div",
+          { class: "list-item link", onclick: () => openCustomer(c.id) },
+          h(
+            "div",
+            { class: "grow" },
+            h("div", { class: "title" }, c.name),
+            h("div", { class: "muted small" }, [c.industry, c.city].filter(Boolean).join(" · ") || "—"),
+          ),
+          c.open_tasks ? h("span", { class: "badge" }, `${c.open_tasks} opg.`) : null,
+          h("span", { class: `badge ${slug(c.status)}` }, c.status),
+        ),
+      );
+  };
+  search.addEventListener("input", () => {
+    clearTimeout(timer);
+    timer = setTimeout(load, 200);
+  });
+  status.addEventListener("change", load);
+  main.append(
+    h("div", { class: "row between" }, h("h1", {}, "Kunder"), h("button", { class: "btn primary small", onclick: () => customerDialog() }, "+ Ny kunde")),
+    h("div", { class: "row" }, h("div", { class: "grow" }, search), h("div", {}, status)),
+    listEl,
+  );
+  listEl.style.marginTop = "12px";
+  load();
+}
+
+function openCustomer(id) {
+  state.tab = "kunder";
+  state.customerId = id;
+  render();
+}
+
+async function customerDetailView(main, id) {
+  main.append(h("div", { class: "muted" }, "Indlæser…"));
+  let d;
+  try {
+    d = await api(`/api/customers/${id}`);
+  } catch (e) {
+    main.replaceChildren(h("div", { class: "error" }, e.message));
+    return;
+  }
+  const { customer: c, contacts, activities, tasks, deals } = d;
+  const reload = () => openCustomer(id);
+  main.replaceChildren(
+    h("button", { class: "btn ghost small", onclick: () => setTab("kunder") }, "← Alle kunder"),
+    h("div", { class: "row between" }, h("h1", {}, c.name), h("span", { class: `badge ${slug(c.status)}` }, c.status)),
+    h(
+      "div",
+      { class: "row" },
+      h("button", { class: "btn small", onclick: () => activityDialog(c, contacts, reload) }, "+ Note / møde"),
+      h("button", { class: "btn small", onclick: () => contactDialog(c, reload) }, "+ Kontaktperson"),
+      h("button", { class: "btn small", onclick: () => taskDialog(c, reload) }, "+ Opgave"),
+      h("button", { class: "btn small", onclick: () => customerDialog(c, reload) }, "Redigér"),
+      h(
+        "button",
+        {
+          class: "btn small",
+          onclick: () => {
+            setTab("assistent");
+            const ta = document.querySelector(".composer textarea");
+            if (ta) ta.value = `Giv mig et kort overblik over ${c.name}.`;
+          },
+        },
+        "🎙️ Spørg assistenten",
+      ),
+    ),
+    h("h2", {}, "Stamdata"),
+    h(
+      "div",
+      { class: "card" },
+      h(
+        "dl",
+        { class: "kv" },
+        [
+          ["CVR", c.cvr],
+          ["Branche", c.industry],
+          ["Adresse", [c.address, c.city].filter(Boolean).join(", ")],
+          ["Telefon", c.phone],
+          ["E-mail", c.email],
+          ["Hjemmeside", c.website],
+          ["Ansvarlig", c.owner_name],
+          ["Noter", c.notes],
+        ]
+          .filter(([, v]) => v)
+          .flatMap(([k, v]) => [h("dt", {}, k), h("dd", {}, v)]),
+      ),
+    ),
+    h("h2", {}, `Kontaktpersoner (${contacts.length})`),
+    h(
+      "div",
+      { class: "list" },
+      contacts.length
+        ? contacts.map((p) =>
+            h(
+              "div",
+              { class: "list-item" },
+              h(
+                "div",
+                { class: "grow" },
+                h("div", { class: "title" }, p.name),
+                h("div", { class: "muted small" }, [p.title, p.phone, p.email].filter(Boolean).join(" · ")),
+              ),
+              p.phone ? h("a", { class: "btn small", href: `tel:${p.phone.replace(/\s/g, "")}` }, "Ring") : null,
+            ),
+          )
+        : h("div", { class: "empty" }, "Ingen kontaktpersoner."),
+    ),
+    h("h2", {}, "Opgaver"),
+    taskList(tasks, reload, { showCustomer: false }),
+    h("h2", {}, "Salgsmuligheder"),
+    h(
+      "div",
+      { class: "list" },
+      deals.length
+        ? deals.map((dl) =>
+            h(
+              "div",
+              { class: "list-item" },
+              h(
+                "div",
+                { class: "grow" },
+                h("div", { class: "title" }, dl.title),
+                h("div", { class: "muted small" }, [fmtDkk(dl.value_dkk), dl.expected_close && "forventet " + fmtDate(dl.expected_close)].filter(Boolean).join(" · ")),
+              ),
+              h("span", { class: `badge ${slug(dl.stage)}` }, dl.stage),
+            ),
+          )
+        : h("div", { class: "empty" }, "Ingen salgsmuligheder."),
+    ),
+    h("h2", {}, "Historik"),
+    h(
+      "div",
+      { class: "list timeline" },
+      activities.length
+        ? activities.map((a) =>
+            h(
+              "div",
+              { class: "list-item" },
+              h("div", { class: "type-ico", title: a.type }, TYPE_ICO[a.type] || "•"),
+              h(
+                "div",
+                { class: "grow" },
+                h("div", { class: "muted small" }, [fmtDate(a.occurred_at), a.type, a.contact_name, a.user_name && "af " + a.user_name].filter(Boolean).join(" · ")),
+                h("div", {}, a.summary),
+              ),
+            ),
+          )
+        : h("div", { class: "empty" }, "Ingen aktiviteter endnu."),
+    ),
+  );
+}
+
+function taskList(tasks, reload, { showCustomer = true } = {}) {
+  return h(
+    "div",
+    { class: "list" },
+    tasks.length
+      ? tasks.map((t) => {
+          const box = h("input", { type: "checkbox", class: "check", checked: t.status === "færdig", "aria-label": "Færdig" });
+          box.addEventListener("change", async () => {
+            await api(`/api/tasks/${t.id}`, { method: "PATCH", body: { status: box.checked ? "færdig" : "åben" } });
+            reload();
+          });
+          const late = t.status === "åben" && t.due_date && t.due_date < today();
+          return h(
+            "div",
+            { class: `list-item ${t.status === "færdig" ? "done" : ""}` },
+            box,
+            h(
+              "div",
+              { class: "grow" },
+              h("div", { class: "title" }, t.title),
+              h(
+                "div",
+                { class: "muted small" },
+                [showCustomer && t.customer_name, t.assigned_name].filter(Boolean).join(" · "),
+                showCustomer && t.customer_id ? " " : null,
+                showCustomer && t.customer_id ? h("a", { href: "#", onclick: (e) => (e.preventDefault(), openCustomer(t.customer_id)) }, "Åbn") : null,
+              ),
+            ),
+            t.due_date ? h("span", { class: `badge ${late ? "late" : ""}` }, (late ? "Forfalden " : "") + fmtDate(t.due_date)) : null,
+          );
+        })
+      : h("div", { class: "empty" }, "Ingen opgaver."),
+  );
+}
+
+// ---------- tasks ----------
+function tasksView(main) {
+  const mine = store.get("tasks-mine") !== "0";
+  const status = store.get("tasks-status") || "åben";
+  const wrap = h("div", {}, h("div", { class: "muted" }, "Indlæser…"));
+  const seg = (label, active, onclick) => h("button", { class: `btn small ${active ? "primary" : ""}`, onclick }, label);
+  main.append(
+    h("div", { class: "row between" }, h("h1", {}, "Opgaver"), h("button", { class: "btn primary small", onclick: () => taskDialog(null, () => render()) }, "+ Ny opgave")),
+    h(
+      "div",
+      { class: "row" },
+      seg("Mine", mine, () => (store.set("tasks-mine", "1"), render())),
+      seg("Alle", !mine, () => (store.set("tasks-mine", "0"), render())),
+      h("span", { class: "grow" }),
+      seg("Åbne", status === "åben", () => (store.set("tasks-status", "åben"), render())),
+      seg("Færdige", status === "færdig", () => (store.set("tasks-status", "færdig"), render())),
+    ),
+    wrap,
+  );
+  wrap.style.marginTop = "12px";
+  api(`/api/tasks?status=${encodeURIComponent(status)}${mine ? "&mine=1" : ""}`).then((tasks) => wrap.replaceChildren(taskList(tasks, () => render())));
+}
+
+// ---------- overview ----------
+async function overviewView(main) {
+  main.append(h("h1", {}, "Overblik"), h("div", { class: "muted" }, "Indlæser…"));
+  const o = await api("/api/overview");
+  const maxVal = Math.max(1, ...o.pipeline.map((p) => p.value));
+  const kpi = (num, lbl, warn) => h("div", { class: `card kpi ${warn ? "warn" : ""}` }, h("div", { class: "num" }, num), h("div", { class: "lbl" }, lbl));
+  const openValue = o.pipeline.filter((p) => !["vundet", "tabt"].includes(p.stage)).reduce((s, p) => s + p.value, 0);
+  main.replaceChildren(
+    h("h1", {}, "Overblik"),
+    h(
+      "div",
+      { class: "kpis" },
+      kpi(o.customers, "Kunder"),
+      kpi(o.leads, "Leads"),
+      kpi(o.open_tasks, "Åbne opgaver"),
+      kpi(o.overdue_tasks, "Forfaldne opgaver", o.overdue_tasks > 0),
+    ),
+    h("h2", {}, `Pipeline · ${fmtDkk(openValue)} åbent`),
+    h(
+      "div",
+      { class: "card" },
+      o.pipeline.map((p) => {
+        const fill = h("span");
+        fill.style.width = `${(p.value / maxVal) * 100}%`;
+        return h("div", { class: "bar-row" }, h("span", {}, `${p.stage} (${p.count})`), h("div", { class: "bar" }, fill), h("span", { class: "muted" }, fmtDkk(p.value)));
+      }),
+    ),
+    h("h2", {}, "Mine åbne opgaver"),
+    taskList(o.my_tasks, () => render()),
+    h("h2", {}, "Seneste aktivitet"),
+    h(
+      "div",
+      { class: "list timeline" },
+      o.recent.length
+        ? o.recent.map((a) =>
+            h(
+              "div",
+              { class: "list-item link", onclick: () => openCustomer(a.customer_id) },
+              h("div", { class: "type-ico" }, TYPE_ICO[a.type] || "•"),
+              h(
+                "div",
+                { class: "grow" },
+                h("div", { class: "muted small" }, [fmtDate(a.occurred_at), a.customer_name, a.user_name].filter(Boolean).join(" · ")),
+                h("div", {}, a.summary),
+              ),
+            ),
+          )
+        : h("div", { class: "empty" }, "Ingen aktivitet de seneste 14 dage."),
+    ),
+  );
+}
+
+// ---------- users (admin) ----------
+async function usersView(main) {
+  const users = await api("/api/users");
+  main.append(
+    h("div", { class: "row between" }, h("h1", {}, "Brugere"), h("button", { class: "btn primary small", onclick: userDialog }, "+ Ny bruger")),
+    h(
+      "div",
+      { class: "list" },
+      users.map((u) => {
+        const toggle = h(
+          "button",
+          {
+            class: "btn small",
+            onclick: async () => {
+              try {
+                await api(`/api/users/${u.id}`, { method: "PATCH", body: { active: !u.active } });
+                render();
+              } catch (e) {
+                toast(e.message);
+              }
+            },
+          },
+          u.active ? "Deaktivér" : "Aktivér",
+        );
+        return h(
+          "div",
+          { class: "list-item" },
+          h("div", { class: "grow" }, h("div", { class: "title" }, u.name), h("div", { class: "muted small" }, u.email)),
+          u.role === "admin" ? h("span", { class: "badge" }, "admin") : null,
+          u.active ? null : h("span", { class: "badge late" }, "inaktiv"),
+          u.id === state.user.id ? null : toggle,
+        );
+      }),
+    ),
+  );
+}
+
+// ---------- dialogs ----------
+function dialog(title, fields, onSubmit) {
+  const err = h("div", { class: "error" });
+  const dlg = h("dialog");
+  const form = h(
+    "form",
+    {
+      onsubmit: async (e) => {
+        e.preventDefault();
+        err.textContent = "";
+        const values = {};
+        for (const [name, el] of Object.entries(fields)) values[name] = el.value?.trim?.() ?? el.value;
+        try {
+          await onSubmit(values);
+          dlg.close();
+        } catch (ex) {
+          err.textContent = ex.message;
+        }
+      },
+    },
+    h("h2", {}, title),
+    h("div", { class: "form-grid" }, Object.entries(fields).map(([, el]) => h("div", { class: el.dataset.wide ? "wide" : "" }, h("label", {}, el.dataset.label), el))),
+    err,
+    h("div", { class: "row end" }, h("button", { class: "btn", type: "button", onclick: () => dlg.close() }, "Annullér"), h("button", { class: "btn primary", type: "submit" }, "Gem")),
+  );
+  dlg.append(form);
+  dlg.addEventListener("close", () => dlg.remove());
+  document.body.append(dlg);
+  dlg.showModal();
+}
+
+const field = (label, tag = "input", attrs = {}, ...children) => {
+  const el = h(tag, { type: tag === "input" ? "text" : undefined, ...attrs }, ...children);
+  el.dataset.label = label;
+  return el;
+};
+
+function customerDialog(c = null, after) {
+  const statusSel = field("Status", "select", {}, ["kunde", "lead", "tidligere kunde"].map((s) => h("option", { value: s, selected: c?.status === s }, s)));
+  dialog(
+    c ? "Redigér kunde" : "Ny kunde",
+    {
+      name: field("Firmanavn *", "input", { required: true, value: c?.name }),
+      status: statusSel,
+      cvr: field("CVR", "input", { value: c?.cvr }),
+      industry: field("Branche", "input", { value: c?.industry }),
+      address: field("Adresse", "input", { value: c?.address }),
+      city: field("By", "input", { value: c?.city }),
+      phone: field("Telefon", "input", { type: "tel", value: c?.phone }),
+      email: field("E-mail", "input", { type: "email", value: c?.email }),
+      website: field("Hjemmeside", "input", { value: c?.website }),
+      notes: field("Noter", "textarea", { rows: 2, value: c?.notes }),
+    },
+    async (v) => {
+      if (c) {
+        await api(`/api/customers/${c.id}`, { method: "PATCH", body: v });
+        after?.();
+      } else {
+        const d = await api("/api/customers", { method: "POST", body: v });
+        openCustomer(d.customer.id);
+      }
+    },
+  );
+}
+
+function contactDialog(c, after) {
+  dialog(
+    `Ny kontaktperson – ${c.name}`,
+    {
+      name: field("Navn *", "input", { required: true }),
+      title: field("Stilling"),
+      phone: field("Telefon", "input", { type: "tel" }),
+      email: field("E-mail", "input", { type: "email" }),
+    },
+    async (v) => {
+      await api(`/api/customers/${c.id}/contacts`, { method: "POST", body: v });
+      after();
+    },
+  );
+}
+
+function activityDialog(c, contacts, after) {
+  dialog(
+    `Registrér aktivitet – ${c.name}`,
+    {
+      type: field("Type", "select", {}, ["møde", "opkald", "email", "note"].map((t) => h("option", { value: t }, t))),
+      occurred_at: field("Dato", "input", { type: "date", value: today() }),
+      contact_id: field("Kontaktperson", "select", {}, h("option", { value: "" }, "—"), contacts.map((p) => h("option", { value: p.id }, p.name))),
+      summary: field("Resumé *", "textarea", { rows: 4, required: true }),
+    },
+    async (v) => {
+      await api(`/api/customers/${c.id}/activities`, { method: "POST", body: { ...v, contact_id: v.contact_id ? Number(v.contact_id) : null } });
+      after();
+    },
+  );
+}
+
+async function taskDialog(c, after) {
+  const users = await api("/api/users");
+  dialog(
+    c ? `Ny opgave – ${c.name}` : "Ny opgave",
+    {
+      title: field("Hvad skal gøres? *", "input", { required: true }),
+      due_date: field("Frist", "input", { type: "date" }),
+      assigned_to: field("Ansvarlig", "select", {}, users.filter((u) => u.active !== 0).map((u) => h("option", { value: u.id, selected: u.id === state.user.id }, u.name))),
+    },
+    async (v) => {
+      await api("/api/tasks", { method: "POST", body: { ...v, customer_id: c?.id, assigned_to: Number(v.assigned_to), due_date: v.due_date || null } });
+      after();
+    },
+  );
+}
+
+function userDialog() {
+  dialog(
+    "Ny bruger",
+    {
+      name: field("Navn *", "input", { required: true }),
+      email: field("E-mail *", "input", { type: "email", required: true }),
+      password: field("Midlertidig adgangskode * (min. 8 tegn)", "input", { type: "text", required: true, minlength: 8 }),
+      role: field("Rolle", "select", {}, h("option", { value: "user" }, "Bruger"), h("option", { value: "admin" }, "Administrator")),
+    },
+    async (v) => {
+      await api("/api/users", { method: "POST", body: v });
+      render();
+    },
+  );
+}
+
+init();
+
+</script>
